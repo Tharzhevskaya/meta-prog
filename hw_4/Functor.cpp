@@ -4,16 +4,20 @@ template <class... Tail>
 class ArgsPack;
 
 template <>
+// класс хранит аргументы и может применить к ним вызов функции, но не хранит саму функции (просто принимает на вход)
 class ArgsPack<> {
 public:
 	//ArgsPack() {}
-
+// принимает функцию и аргументы
 	template<class Delegate, typename... Args>
+		// у ArgsPack'а есть метод Call, который вызывает функцию от аргументов
 	auto Call(const Delegate& delegate, Args&& ... args) -> decltype(delegate(args...))
 	{
 		return delegate(args...);
 	}
 };
+
+// не можем конвертировать в вызове Call, поэтому делаем обертки
 
 template<typename T>
 T* ConvertToPtr(T& t) {
@@ -33,14 +37,16 @@ T& ConvertToRef(T* t) {
 	return *t;
 }
 
+// реализация АргПака
 template <class Head, class... Tail>
 class ArgsPack<Head, Tail...> : public ArgsPack<Tail...> {
 private:
-	Head m_Param;
+	Head m_Param; // главный параметр Head
 
 public:
 	typedef ArgsPack<Tail...> __base;
 	template<typename _Head, typename... _Tail>
+	// "рекурсивный" конструктор аргпака от всех его аргументов
 	ArgsPack(_Head&& head, _Tail&& ... tail)
 		: __base(std::forward<_Tail>(tail)...),
 		m_Param(std::forward<Head>(head)) {}
@@ -73,7 +79,6 @@ public:
 	}
 };
 
-
 template <class TCE>
 struct CEWrapper {
 private:
@@ -88,6 +93,7 @@ public:
 	}
 };
 
+// Функтор - класс, даем ему функцию и аргументы, потом вызываем функцию Callом из функтора
 template<class TCallableEntity, class... Params>
 class Functor {
 private:
