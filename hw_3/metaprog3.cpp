@@ -9,12 +9,15 @@ template<class A, class B> struct Typelist {};
 template<class TList, template<class> class Unit>
 class GenScatterHierarchy;
 
+// создаем иерархию GenScatterHierarcy
 template<class T1, class T2, template<class> class Unit>
 class GenScatterHierarchy<Typelist<T1, T2>, Unit>: 
+// наследуемся от левого и правого поддерева
 	public GenScatterHierarchy<T1, Unit>, 
 	public GenScatterHierarchy<T2, Unit> {
 public:
 	using TList = Typelist<T1, T2>;
+	
 	using LeftBase = GenScatterHierarchy<T1, Unit>;
 	using RightBase = GenScatterHierarchy<T2, Unit>;
 
@@ -25,6 +28,7 @@ public:
 	};
 };
 
+// лист дерева
 template<class AtomicType, template<class> class Unit>
 class GenScatterHierarchy : public Unit<AtomicType> {
 public:
@@ -48,7 +52,8 @@ class GenScatterHierarchy<NullType, Unit > {
 
 };
 
-
+// Шаблонный класс Holder, которому мы хотим по очереди передать int, strint
+// Хотим иметь доступ одним и тем же методом к объектам разных типов
 template<class T>
 struct Holder {
 	T value;
@@ -58,7 +63,12 @@ using WidgetInfo = GenScatterHierarchy<
 	Typelist<Typelist<int, double>, string>, 
 	Holder>;
 
-
+// поле шаблона функции
+// Доступ к полю в объекте типа, созданного с помощью GenScatterHierarchy
+// obj - это объект типа H, созданный с помощью GenScatterHierarchy,
+// T - это тип в списке типов, используемый для генерации H
+// Поле <T> (объект)
+// возвращает ссылку на Unit <T>, где Unit - шаблон, используемый для генерации H
 template <class T, class H>
 typename H::template Rebind<T>::Result& Field(H& sample)
 {
@@ -72,8 +82,9 @@ const typename H::template Rebind<T>::Result& Field(const H& sample)
 }
 
 int main() {
-	WidgetInfo sample;
+	WidgetInfo sample; // создали объект класса, который унаследовался от Holder<string>, Holder<double>, и ...<string>
 
+	// метод Field (функция доступа к члену класса WigetInfo по типу) нам вернет указатель на 
 	Field<int>(sample).value = 666;
 	cout << Field<int>(sample).value << endl;
 
